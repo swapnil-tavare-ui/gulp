@@ -1,0 +1,183 @@
+1. Make sure if Node.js is installed on your machine. You can check it by running the following command on Git Bash or Command Prompt
+node --version
+If not installed, install from link mentioned below
+https://nodejs.org/en/ 
+
+2.Install the gulp command line utility
+npm install --global gulp-cli
+
+3.Go in your respective Project folder
+Open Git Bash and run the following command:
+npm init 
+After running this command keep on entering until : "Is this OK? (yes)"
+This command creates a package.json file in your Project folder.
+
+4.Now install Gulp into the project by running the following command
+npm install gulp --save-dev
+once it's installed, ensure it by running the following command
+gulp --version
+Now if you check the Project folder when the command has finished executing, you should see that Gulp has created a node_modules folder.
+
+5.Create a gulpfile.js, which stores all Gulp configurations.
+and start with by declaring a variable in gulpfile.js
+var gulp = require('gulp');
+
+
+
+6.To concatenate and minify multiple CSS files into one CSS file 
+To minify and concat the CSS files, we need to add the gulp-clean-css and gulp-concat file by running the following commands in Git Bash or Command Prompt
+npm install --save-dev gulp-clean-css
+npm install --save-dev gulp-concat
+Now declare 2 variables in gulpfile.js
+var concat = require('gulp-concat');
+var cleanCSS = require('gulp-clean-css');
+Add following task in gulpfile.js to concat and minify the CSS
+gulp.task('concatCss', function () {
+    return gulp.src([
+            //add all the CSS which you want to concat into one CSS, as per your folder structure in the order you want
+            'css/slick.css',
+            'css/animate.css',
+            'css/style.css'
+        ])
+        //name the CSS file name whatever you want (in this case I've saved it by all.css)
+        .pipe(concat('all.css'))
+        //this will minify your CSS
+        .pipe(cleanCSS({
+            compatibility: 'ie8'
+        }))
+        //add the destination folder name here where you want to save your file(in this case I've saved in dist folder)
+        .pipe(gulp.dest('dist'));
+});
+
+Now run the following command:
+gulp concatJs
+Now If you will check dist folder, all.js will be generated
+
+
+7.To concatenate multiple JS files into one JS file 
+
+To minify and concat the JS files, we need to add the gulp-uglify and gulp-concat file by running the following commands in Git Bash or Command Prompt
+npm install --save-dev gulp-uglify
+npm install --save-dev gulp-watch
+
+Now declare 2 variables in gulpfile.js
+var concat = require('gulp-concat');
+var uglify = require('gulp-uglify');
+
+Add following task in gulpfile.js to concat and minify the JS
+
+gulp.task('concatJs', function () {
+    return gulp.src([
+            //add all the JS which you want to concat into one JS, as per your folder structure in the order you want
+            'js/jquery.min.js',
+            'js/slick.js',
+            'js/wow.min.js',
+            'js/validation.js',
+            'js/main.js'
+        ])
+        //name the js file name whatever you want (in this case I've saved it by all.css)
+        .pipe(concat('all.js'))
+        //this will minify your JS
+        .pipe(uglify())
+        //add the destination folder name here where you want to save your file(in this case I've saved in dist folder)
+        .pipe(gulp.dest('dist'));
+});
+
+Now run the following command:
+gulp concatJs
+Now If you will check dist folder, all.js will be generated
+
+
+8. To watch all the CSS and JS files and on save of it reload the Browser
+
+For Browser Sync, we need to add the  browser-sync file by running the following commands in Git Bash or Command Prompt
+npm install browser-sync --save-dev
+
+decalare a variable in gulpfile.js
+var browserSync = require('browser-sync').create();
+
+Add following task in gulpfile.js to watch all the CSS and JS files and on save of it reload the Browser
+
+gulp.task('watch', function () {
+    browserSync.init({
+        // You can tell browserSync to use this directory and serve it as a mini-server
+        server: {
+            baseDir: "./"
+        }
+        // If you are already serving your website locally using something like apache
+        // You can use the proxy setting to proxy that instead
+        // proxy: "yourlocal.dev"
+    });
+    gulp.watch('css/*.css', gulp.series('concatCss'));
+    gulp.watch('js/*.js', gulp.series('concatJs'));
+
+})
+
+
+
+To build all the things in dist folder 
+1. Run the following commands in Git Bash or Command Prompt
+ npm install gulp-useref --save-dev
+ npm install gulp-cssnano
+ npm install gulp-uglify --save-dev 
+ npm install gulp-cache --save-dev
+ npm install gulp-clean --save-dev
+ npm install gulp4-run-sequence --save-dev
+
+Add following task in gulpfile.js
+
+var gulp = require('gulp');
+var useref = require('gulp-useref');
+var uglify = require('gulp-uglify');
+var gulpIf = require('gulp-if');
+var cssnano = require('gulp-cssnano');
+var clean = require('gulp-clean');
+var runSequence = require('gulp4-run-sequence');
+
+gulp.task('useref', function () {
+    return gulp.src('app/*.html')
+        .pipe(useref())
+        // Minifies only if it's a JavaScript file
+        .pipe(gulpIf('*.js', uglify()))
+        // Minifies only if it's a CSS file
+        .pipe(gulpIf('*.css', cssnano()))
+        .pipe(gulp.dest('dist'))
+});
+
+gulp.task('img', function () {
+    return gulp.src('app/img/**/*')
+        .pipe(gulp.dest('dist/img'))
+})
+
+
+gulp.task('clean', function () {
+    return gulp.src(['dist/*'], {
+            read: false
+        })
+        .pipe(clean());
+});
+
+
+//to run all the task in one command
+gulp.task('build', function (callback) {
+    runSequence(
+        'clean',
+        ['useref', 'img'],
+        callback
+    );
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
